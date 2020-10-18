@@ -3,13 +3,16 @@
 #include "serial.h"
 
 int main() {
+    //Sätter index 1-3 i DDRB registret (motsvarar pin 9-11) till 1 med OR
     DDRB |= (1 << PB1);
     DDRB |= (1 << PB2);
     DDRB |= (1 << PB3);
 
     while (1) {
+        //Tänder LED genom att OR:a in 1 i PORTB registret
         PORTB |= (1 << PB1);
         _delay_ms(50);
+        //Släcker LED genom att NOR:a in 0 i PORTB registret
         PORTB &= ~(1 << PB1);
         _delay_ms(50);
 
