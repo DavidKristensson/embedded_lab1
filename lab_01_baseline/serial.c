@@ -1,6 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
-
+#include <string.h>
 #include "serial.h"
 
 void uart_init(unsigned int ubrr) {
@@ -38,4 +38,113 @@ char uart_getchar(void) {
 void uart_echo(void) {
 	// Get char from PC with uart_getchar, put that char from atmega to PC
 	uart_putchar(uart_getchar());
+}
+
+void UARTgetStringTillEmpty() {
+	//Så länge det finns tecken i input-buffern
+	//	läs ut tecken och spara i char[]
+}
+
+void switchLed(char* uartInput, int i) {
+
+	char localChar = uart_getchar();
+	while (localChar != '\n' && localChar != '\r') {
+		uartInput[i] = localChar;
+		localChar = uart_getchar();
+		i++;
+		PORTB |= (1 << PB2);
+		_delay_ms(100);
+		PORTB &= ~(1 << PB2);
+		_delay_ms(100);
+		//PORTB |= (1 << PB3);
+	}
+
+	if (uartInput[0] == 'O') {
+		if (uartInput[1] == 'N' && i > 0) {
+			PORTB |= (1 << PB1);
+			for (int i = 0; i < strlen(uartInput); i++) {
+				uartInput[i] = 0;
+				i = 0;
+			}
+		}
+		else if (uartInput[1] == 'F' && i > 0) {
+			if (uartInput[2] == 'F' && i > 1) {
+				PORTB &= ~(1 << PB1);
+				for (int i = 0; i < strlen(uartInput); i++) {
+					uartInput[i] = 0;
+					i = 0;
+				}
+			}
+		}
+	}
+
+	//uart_putstr(uartInput);
+
+	/*
+	for (int i = 0; i < 3; i++) {
+		char localChar = uart_getchar();
+		uartInput[i] = localChar;
+	}
+	*/
+	
+	/*
+	char localChar = uart_getchar();
+	while (localChar != '\n' || localChar != '\r') {
+		uartInput[i] = localChar;
+
+		if (uartInput[0] == 'O') {
+			if (uartInput[1] == 'N' && i > 0) {
+				PORTB |= (1 << PB1);
+				for (int i = 0; i < strlen(uartInput); i++) {
+					uartInput[i] = 0;
+					i = 0;
+				}
+			}
+			else if (uartInput[1] == 'F' && i > 0) {
+				if (uartInput[2] == 'F' && i > 1) {
+					PORTB &= ~(1 << PB1);
+					for (int i = 0; i < strlen(uartInput); i++) {
+						uartInput[i] = 0;
+						i = 0
+					}
+				}
+			}
+		}
+
+		localChar = uart_getchar();
+		i++;
+		
+	}
+	PORTB |= (1 << PB2);
+	//for (int i = 0; i < strlen(uartInput); i++) {
+	//	uartInput[i] = 0;
+	//}
+	*/
+	
+	/*
+	if (strcmp(uartInput, "NO") == 0) {
+		PORTB |= (1 << PB1);
+		strcpy(uartInput, "");
+	}
+
+	*/
+	/*
+	if (uart_getchar() == 'Y') {
+		PORTB |= (1 << PB1);
+	}
+	else if (uart_getchar() == 'N') {
+		PORTB &= ~(1 << PB1);
+	}
+	*/
+
+	/*
+	strncat(ledInput, uart_putchar, 1);
+
+	uart_putstr(ledInput);
+
+	if (strcmp(ledInput, "ON\n\r") == 0) {
+		PORTB |= (1 << PB1);
+		strcpy(ledInput, "");
+	}
+	*/
 }

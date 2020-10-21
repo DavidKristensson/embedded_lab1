@@ -9,9 +9,13 @@
 #include "led.h"
 
 int main() {
+    char uartInput[10];
+    //char* ledInput = "";
+    led_init();
     uart_init(MYUBRR);
+    int i = 0;
     while (1) {
-        uart_echo();
+        switchLed(uartInput, i);
     }
     return 0;
 }

@@ -11,5 +11,7 @@ char uart_getchar(void);
 
 void uart_echo(void);
 
+void switchLed(char* uartInput, int i);
+
 #endif
 
