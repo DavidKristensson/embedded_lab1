@@ -1,150 +1,78 @@
-#include <avr/io.h>
-#include <util/delay.h>
-#include <string.h>
 #include "serial.h"
 
 void uart_init(unsigned int ubrr) {
-	// Set baud rate
+	/*
+		Baud rate is set with registers UBRR0H and UBRR0L
+		Transmitting and receiving is enabled with UCSR0B register
+
+		8n1 is set by default, here i am setting it anyway
+		The USBS0 bit sets the frame to 1 or 2 stop bits but since USBS0 bit is supposed to be 0 for 1 stop bit i will leave it as is
+		UPMn1:0 sets two bits, one bit that enables parity and one that sets the type of parity. Leaving this as is aswell
+		UCSR0C register sets the number of bits to 8 in the frame
+	*/
 	UBRR0H = (unsigned char)(ubrr >> 8);
 	UBRR0L = (unsigned char)ubrr;
-	// Enable transmitter & receiver
+
 	UCSR0B = (1 << TXEN0) | (1 << RXEN0);
+
+	UCSR0C = (3 << UCSZ00);
 }
 
 void uart_putchar(char chr) {
-	// Wait for empty transmit buffer
+	/*
+		Wait for empty transmit buffer
+		Put data into buffer, sends the data
+		If char is \n, send a \r after
+	*/
 	while (!(UCSR0A & (1 << UDRE0)));
-	// Put data into buffer, sends the data
 	UDR0 = chr;
 
-	if (chr == '\n') { // If char is \n, send a \r after
+	if (chr == '\n') {
 		uart_putchar('\r');
 	}
 }
 
 void uart_putstr(const char* str) {
-	for (int i = 0; str[i] != '\0'; i++) { // Run loop until string is empty
-		uart_putchar(str[i]); // Print each char in char array
+	/*
+		Print each char until char array null terminates AKA is empty
+	*/
+	for (int i = 0; str[i] != '\0'; i++) {
+		uart_putchar(str[i]);
 	}
 }
 
 char uart_getchar(void) {
-	// Wait for data to be received
+	/*
+		Waits for data to be received
+		Get and return received data from buffer 
+	*/
 	while (!(UCSR0A & (1 << RXC0)));
-	// Get and return received data from buffer 
 	return UDR0;
 }
 
 void uart_echo(void) {
-	// Get char from PC with uart_getchar, put that char from atmega to PC
+	/*
+		Receive char from serial with uart_getchar, transmit char through serial with uart_putchar
+	*/
 	uart_putchar(uart_getchar());
 }
 
-void UARTgetStringTillEmpty() {
-	//Så länge det finns tecken i input-buffern
-	//	läs ut tecken och spara i char[]
-}
-
-void switchLed(char* uartInput, int i) {
-
+void uart_getstr() {
+	/*
+		Reads chars from buffer and add to char array
+		until char is \n, \r or aslong as index is below 10
+		Null terminates char array
+	*/
+	int index = 0;
+	int charArraySize = 10;
 	char localChar = uart_getchar();
-	while (localChar != '\n' && localChar != '\r') {
-		uartInput[i] = localChar;
+	char localCharArray[charArraySize];
+
+	while (localChar != '\n' && localChar != '\r' && index < 10) { 
+		localCharArray[index] = localChar;						  
 		localChar = uart_getchar();
-		i++;
-		PORTB |= (1 << PB2);
-		_delay_ms(100);
-		PORTB &= ~(1 << PB2);
-		_delay_ms(100);
-		//PORTB |= (1 << PB3);
+		index++;
 	}
-
-	if (uartInput[0] == 'O') {
-		if (uartInput[1] == 'N' && i > 0) {
-			PORTB |= (1 << PB1);
-			for (int i = 0; i < strlen(uartInput); i++) {
-				uartInput[i] = 0;
-				i = 0;
-			}
-		}
-		else if (uartInput[1] == 'F' && i > 0) {
-			if (uartInput[2] == 'F' && i > 1) {
-				PORTB &= ~(1 << PB1);
-				for (int i = 0; i < strlen(uartInput); i++) {
-					uartInput[i] = 0;
-					i = 0;
-				}
-			}
-		}
-	}
-
-	//uart_putstr(uartInput);
-
-	/*
-	for (int i = 0; i < 3; i++) {
-		char localChar = uart_getchar();
-		uartInput[i] = localChar;
-	}
-	*/
-	
-	/*
-	char localChar = uart_getchar();
-	while (localChar != '\n' || localChar != '\r') {
-		uartInput[i] = localChar;
-
-		if (uartInput[0] == 'O') {
-			if (uartInput[1] == 'N' && i > 0) {
-				PORTB |= (1 << PB1);
-				for (int i = 0; i < strlen(uartInput); i++) {
-					uartInput[i] = 0;
-					i = 0;
-				}
-			}
-			else if (uartInput[1] == 'F' && i > 0) {
-				if (uartInput[2] == 'F' && i > 1) {
-					PORTB &= ~(1 << PB1);
-					for (int i = 0; i < strlen(uartInput); i++) {
-						uartInput[i] = 0;
-						i = 0
-					}
-				}
-			}
-		}
-
-		localChar = uart_getchar();
-		i++;
-		
-	}
-	PORTB |= (1 << PB2);
-	//for (int i = 0; i < strlen(uartInput); i++) {
-	//	uartInput[i] = 0;
-	//}
-	*/
-	
-	/*
-	if (strcmp(uartInput, "NO") == 0) {
-		PORTB |= (1 << PB1);
-		strcpy(uartInput, "");
-	}
-
-	*/
-	/*
-	if (uart_getchar() == 'Y') {
-		PORTB |= (1 << PB1);
-	}
-	else if (uart_getchar() == 'N') {
-		PORTB &= ~(1 << PB1);
-	}
-	*/
-
-	/*
-	strncat(ledInput, uart_putchar, 1);
-
-	uart_putstr(ledInput);
-
-	if (strcmp(ledInput, "ON\n\r") == 0) {
-		PORTB |= (1 << PB1);
-		strcpy(ledInput, "");
-	}
-	*/
+	localCharArray[index] = '\0'; 
+	switchLedOnCommand(localCharArray);
 }

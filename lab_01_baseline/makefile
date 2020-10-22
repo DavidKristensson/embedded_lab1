@@ -6,7 +6,7 @@ SOURCES = \
 		  serial.c \
 		led.c
 
-PORT = /dev/ttyS3 # Arduinons serieport — kan vara ttyACM1, kolla dmesg!
+PORT = /dev/ttyS4 # Arduinons serieport — kan vara ttyACM1, kolla dmesg!
 
 CC = avr-gcc
 LD=avr-ld
